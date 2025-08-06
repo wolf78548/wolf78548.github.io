@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>高级选项统计器</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .control-panel {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .results {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .result-table th, .result-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .result-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        .result-table tr:hover {
+            background-color: #f5f7fa;
+        }
+        .percentage-bar {
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin-top: 5px;
+        }
+        .percentage-fill {
+            height: 100%;
+            border-radius: 10px;
+            background-color: #3498db;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <h1>高级选项统计器</h1>
+    
+    <div class="control-panel">
+        <div class="form-group">
+            <label for="optionType">选择选项类型</label>
+            <select id="optionType">
+                <option value="AB">AB (2种选项)</option>
+                <option value="ABC">ABC (3种选项)</option>
+                <option value="abcd">abcd (4种选项)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="iterations">模拟次数</label>
+            <input type="number" id="iterations" value="10000" min="100" max="1000000">
+        </div>
+        
+        <button onclick="runSimulation()">开始模拟</button>
+    </div>
+    
+    <div class="results" id="results" style="display: none;">
+        <h2>模拟结果</h2>
+        <p>共进行了 <span id="totalIterations" class="highlight">0</span> 次模拟，选项类型: <span id="selectedOptionType" class="highlight"></span></p>
+        <table class="result-table">
+            <thead>
+                <tr>
+                    <th>选项</th>
+                    <th>出现次数</th>
+                    <th>百分比</th>
+                    <th>分布</th>
+                </tr>
+            </thead>
+            <tbody id="resultTableBody">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function runSimulation() {
+            const optionType = document.getElementById('optionType').value;
+            const iterations = parseInt(document.getElementById('iterations').value);
+            
+            let options = [];
+            switch(optionType) {
+                case 'AB':
+                    options = ['A', 'B'];
+                    break;
+                case 'ABC':
+                    options = ['A', 'B', 'C'];
+                    break;
+                case 'abcd':
+                    options = ['a', 'b', 'c', 'd'];
+                    break;
+            }
+            
+            // 初始化计数对象
+            const counts = {};
+            options.forEach(option => {
+                counts[option] = 0;
+            });
+            
+            // 执行模拟
+            for (let i = 0; i < iterations; i++) {
+                const randomIndex = Math.floor(Math.random() * options.length);
+                const selected = options[randomIndex];
+                counts[selected]++;
+            }
+            
+            // 显示结果
+            displayResults(optionType, iterations, counts, options);
+        }
+        
+        function displayResults(optionType, iterations, counts, options) {
+            document.getElementById('totalIterations').textContent = iterations.toLocaleString();
+            document.getElementById('selectedOptionType').textContent = 
+                optionType === 'AB' ? 'AB (2种选项)' : 
+                optionType === 'ABC' ? 'ABC (3种选项)' : 'abcd (4种选项)';
+            
+            const tableBody = document.getElementById('resultTableBody');
+            tableBody.innerHTML = '';
+            
+            // 计算并显示每个选项的结果
+            options.forEach(option => {
+                const count = counts[option];
+                const percentage = (count / iterations * 100).toFixed(2);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${option}</td>
+                    <td>${count.toLocaleString()}</td>
+                    <td>${percentage}%</td>
+                    <td>
+                        <div class="percentage-bar">
+                            <div class="percentage-fill" style="width: ${percentage}%"></div>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // 显示结果区域
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
